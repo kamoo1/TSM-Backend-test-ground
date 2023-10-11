@@ -54,8 +54,7 @@ jobs:
         BN_CLIENT_ID: ${{ secrets.BN_CLIENT_ID }}
         BN_CLIENT_SECRET: ${{ secrets.BN_CLIENT_SECRET }}
       run: >
-        printf %s\\n retail tw classic tw classic_wlk tw 
-        retail kr classic kr classic_wlk kr | 
+        printf %s\\n classic tw |
         xargs -n2 
         python -m ah.updater 
         --db_path ${{ env.DB_PATH }} 
