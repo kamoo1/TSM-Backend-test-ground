@@ -60,10 +60,16 @@ jobs:
         python -m ah.updater 
         --db_path ${{ env.DB_PATH }} 
         --game_version 
+    - name: Update db tag
+      run: |
+        git tag -d db || true
+        git push origin :db || true
+        git tag db
+        git push origin db
     - name: Release DB
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: latest
+        tag_name: db
         files: |
           ${{ env.DB_PATH }}/*.gz
           ${{ env.DB_PATH }}/*.bin
