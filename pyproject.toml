@@ -18,7 +18,6 @@ logging_use_named_masks = false
 major_on_zero = false
 tag_format = "v{version}"
 build_command = '''
-pip install pyinstaller==6.0.0 && \
 make clean-build && \
 make clean-data-qm && \
 make clean-data-bonus && \
@@ -74,7 +73,9 @@ type = "github"
 ignore_token_for_push = false
 
 [tool.semantic_release.remote.token]
-env = "GH_TOKEN"
+# GH_TOKEN is for action (docker) version, it's what passed inside the container
+# GITHUB_TOKEN is what we have in CI env
+env = "GITHUB_TOKEN"
 
 [tool.semantic_release.publish]
 dist_glob_patterns = ["dist/ui.tar.gz"]
