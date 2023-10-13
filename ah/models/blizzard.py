@@ -1,8 +1,6 @@
 from __future__ import annotations
-import os
 import abc
 import time
-from enum import Enum
 from typing import (
     List,
     Iterator,
@@ -15,12 +13,13 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from pydantic import Field, root_validator
+from pydantic import Field, root_validator, Extra
 
-from ah.models.base import _BaseModel
+from ah.models.base import _BaseModel, StrEnum_
 
 if TYPE_CHECKING:
     from ah.api import BNAPI
+
 
 __all__ = (
     "FactionEnum",
@@ -38,10 +37,18 @@ __all__ = (
     "CommodityItem",
     "Commodity",
     "CommoditiesResponse",
+    "Realm",
+    "ConnectedRealm",
 )
 
+"""
+Pydantic fields specs:
+https://docs.pydantic.dev/latest/migration/#required-optional-and-nullable-fields
 
-class FactionEnum(str, Enum):
+"""
+
+
+class FactionEnum(StrEnum_):
     ALLIANCE = "a"
     HORDE = "h"
 
@@ -54,19 +61,19 @@ class FactionEnum(str, Enum):
             raise ValueError(f"Invalid faction: {self}")
 
 
-class RegionEnum(str, Enum):
+class RegionEnum(StrEnum_):
     US = "us"
     EU = "eu"
     KR = "kr"
     TW = "tw"
 
 
-class NameSpaceCategoriesEnum(str, Enum):
+class NameSpaceCategoriesEnum(StrEnum_):
     DYNAMIC = "dynamic"
     STATIC = "static"
 
 
-class GameVersionEnum(str, Enum):
+class GameVersionEnum(StrEnum_):
     CLASSIC = "classic1x"
     CLASSIC_WLK = "classic"
     RETAIL = ""
@@ -134,7 +141,7 @@ class Namespace(_BaseModel):
         frozen = True
 
 
-class TimeLeft(str, Enum):
+class TimeLeft(StrEnum_):
     VERY_LONG = "VERY_LONG"
     LONG = "LONG"
     MEDIUM = "MEDIUM"
@@ -317,7 +324,7 @@ class AuctionsResponse(GenericAuctionsResponseInterface, _BaseModel):
         }
     """
 
-    auctions: List[Auction]
+    auctions: List[Auction] = Field(default_factory=list)
     timestamp: int = Field(default_factory=lambda: int(time.time()))
 
     # don't care, `Any` implies optional field
@@ -328,6 +335,13 @@ class AuctionsResponse(GenericAuctionsResponseInterface, _BaseModel):
     # NOTE: these fields are part of classic & classic wlk, but not retail
     id: Any
     name: Any
+
+    MAP_FACTION_AH_ID: ClassVar[Dict[FactionEnum, int]] = {
+        FactionEnum.ALLIANCE: 2,
+        FactionEnum.HORDE: 6,
+        # `None` for all factions (retail)
+        None: None,
+    }
 
     def get_auctions(self) -> List[GenericAuctionInterface]:
         return self.auctions
@@ -341,9 +355,14 @@ class AuctionsResponse(GenericAuctionsResponseInterface, _BaseModel):
         bn_api: BNAPI,
         namespace: Namespace,
         connected_realm_id: str,
-        faction: FactionEnum,
+        faction: FactionEnum | None,
     ) -> "AuctionsResponse":
-        resp = bn_api.pull_auctions(namespace, connected_realm_id, faction=faction)
+        auction_house_id = cls.MAP_FACTION_AH_ID[faction]
+        resp = bn_api.get_auctions(
+            namespace,
+            connected_realm_id,
+            auction_house_id=auction_house_id,
+        )
         return cls.parse_obj(resp)
 
 
@@ -410,7 +429,7 @@ class CommoditiesResponse(GenericAuctionsResponseInterface, _BaseModel):
 
     # we don't care about _links
     links: Any = Field(alias="_links")
-    auctions: List[Commodity]
+    auctions: List[Commodity] = Field(default_factory=list)
     timestamp: int = Field(default_factory=lambda: int(time.time()))
 
     def get_auctions(self) -> List[GenericAuctionInterface]:
@@ -418,8 +437,49 @@ class CommoditiesResponse(GenericAuctionsResponseInterface, _BaseModel):
 
     @classmethod
     def from_api(cls, bn_api: BNAPI, namespace: Namespace) -> "CommoditiesResponse":
-        resp = bn_api.pull_commodities(namespace)
+        resp = bn_api.get_commodities(namespace)
         return cls.parse_obj(resp)
 
     def get_timestamp(self) -> int:
         return self.timestamp
+
+
+class Realm(_BaseModel):
+    id: int
+    region: Any
+    connected_realm: Any
+    name: str
+    category: str
+    locale: str
+    # TODO: use tz type?
+    timezone: str
+    type: Any
+    is_tournament: bool
+    slug: str
+    # wow/realm response has this field, but not connected realm response
+    links: Optional[Any] = Field(alias="_links")
+
+    CATE_HARDCORE: ClassVar[str] = "Hardcore"
+
+    def is_hardcore(self) -> bool:
+        return self.category == self.CATE_HARDCORE
+
+
+class ConnectedRealm(_BaseModel):
+    # conected realm id
+    id: int
+    realms: List[Realm]
+
+    @classmethod
+    def from_api(
+        cls,
+        bn_api: BNAPI,
+        namespace: Namespace,
+        connected_realm_id: int,
+    ) -> "ConnectedRealm":
+        resp = bn_api.get_connected_realm(namespace, connected_realm_id)
+        return cls.parse_obj(resp)
+
+    class Config:
+        # there are just too many fields we don't care about
+        extra = Extra.ignore
