@@ -37,7 +37,7 @@ TARGETS_PATCH = $(PATH_DATA)/$(LRI_DIFF) $(PATH_DATA)/$(LRI_SHA) $(PATH_DATA)/$(
 TARGETS_BONUS = $(PATH_DATA_AH)/$(BONUSES_CURVES) $(PATH_BUILD)/$(BONUSES) $(PATH_BUILD)/$(CURVES)
 
 .PHONY: all
-all: dist/ah.tar.gz
+all: dist/ui.tar.gz
 
 .PHONY: clean-build
 clean-build:
