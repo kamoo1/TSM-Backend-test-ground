@@ -18,7 +18,7 @@ AH_SHA = $(AH).sha256
 PATH_AH_SRC = $(WARCRAFT_BASE)\_retail_\Interface\AddOns\TradeSkillMaster\Core\Lib\AppHelper.lua
 PATH_AH_DST = $(WARCRAFT_BASE)\_classic_era_\Interface\AddOns\TradeSkillMaster\Core\Lib\AppHelper.lua
 
-
+PATCHES = patches.json
 BONUSES = bonuses.json
 CURVES = item-curves.json
 BONUSES_CURVES = bonuses_curves.json
@@ -34,7 +34,7 @@ UPX_DIR = D:/upx-4.0.2-win64
 
 TARGETS_QM = $(foreach locale,$(UI_LOCALES),locales/$(locale).qm)
 TARGETS_PATCH = $(PATH_DATA)/$(LRI_DIFF) $(PATH_DATA)/$(LRI_SHA) $(PATH_DATA)/$(AH_DIFF) $(PATH_DATA)/$(AH_SHA)
-TARGETS_BONUS = $(PATH_DATA_AH)/$(BONUSES_CURVES) $(PATH_BUILD)/$(BONUSES) $(PATH_BUILD)/$(CURVES)
+TARGETS_BONUS = $(PATH_DATA_AH)/$(BONUSES_CURVES)
 
 .PHONY: all
 all: dist/ui.tar.gz
@@ -52,13 +52,13 @@ clean-data-bonus:
 clean-data-patch:
 	rm -f $(TARGETS_PATCH)
 
-dist/ui.tar.gz: dist/run_ui.exe $(TARGETS_PATCH) $(TARGETS_QM)
-	tar -czf dist/ui.tar.gz $(TARGETS_PATCH) $(TARGETS_QM) -C dist run_ui.exe
+dist/ui.tar.gz: dist/run_ui.exe $(TARGETS_PATCH) $(TARGETS_QM) $(PATH_DATA)/$(PATCHES)
+	tar -czf dist/ui.tar.gz $(TARGETS_PATCH) $(PATH_DATA)/$(PATCHES) $(TARGETS_QM) -C dist run_ui.exe
 
 dist/run_ui.exe: $(PATH_DATA_AH)/$(BONUSES_CURVES)
 	pyinstaller \
 		--onefile run_ui.py \
-		--add-data "$(PATH_DATA_AH)/*.json;$(PATH_DATA_AH)" \
+		--add-data "$(PATH_DATA_AH)/*.json:$(PATH_DATA_AH)" \
 		--upx-dir "$(UPX_DIR)" \
 		--windowed
 
