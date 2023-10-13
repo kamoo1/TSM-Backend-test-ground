@@ -37,6 +37,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -47,10 +49,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install pyinstaller==6.0.0
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: docker cache
-      uses: ScribeMD/docker-cache@0.3.6
-      with:
-        key: docker-${{ runner.os }}
+    # - name: docker cache
+    #   uses: ScribeMD/docker-cache@0.3.6
+    #   with:
+    #     key: docker-${{ runner.os }}
     - name: semantic-release
       # there's a step in the build process that involves downloading a docker image
       uses: python-semantic-release/python-semantic-release@v8.1.1
