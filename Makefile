@@ -38,9 +38,10 @@ UPX_URL = https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zi
 TARGETS_QM = $(foreach locale,$(UI_LOCALES),locales/$(locale).qm)
 TARGETS_PATCH = $(PATH_DATA)/$(LRI_DIFF) $(PATH_DATA)/$(LRI_SHA) $(PATH_DATA)/$(AH_DIFF) $(PATH_DATA)/$(AH_SHA)
 TARGETS_BONUS = $(PATH_DATA_AH)/$(BONUSES_CURVES)
+TARGET_ARCHIVE = dist/archive.zip
 
 .PHONY: all
-all: dist/ui.tar.gz
+all: dist/archive.zip
 
 .PHONY: clean-build
 clean-build:
@@ -55,8 +56,15 @@ clean-data-bonus:
 clean-data-patch:
 	rm -f $(TARGETS_PATCH)
 
-dist/ui.tar.gz: dist/run_ui.exe $(TARGETS_PATCH) $(TARGETS_QM) $(PATH_DATA)/$(PATCHES)
-	tar -czf dist/ui.tar.gz $(TARGETS_PATCH) $(PATH_DATA)/$(PATCHES) $(TARGETS_QM) -C dist run_ui.exe
+$(TARGET_ARCHIVE): dist/run_ui.exe $(TARGETS_PATCH) $(TARGETS_QM) $(PATH_DATA)/$(PATCHES)
+	mkdir -p build/archive && \
+	cp dist/run_ui.exe build/archive && \
+	mkdir -p build/archive/$(PATH_DATA) && \
+	cp $(TARGETS_PATCH) $(PATH_DATA)/$(PATCHES) build/archive/$(PATH_DATA) && \
+	mkdir -p build/archive/locales && \
+	cp $(TARGETS_QM) build/archive/locales && \
+	7z a -tzip $(TARGET_ARCHIVE) ./build/archive/* && \
+	rm -rf build/archive
 
 dist/run_ui.exe: $(PATH_DATA_AH)/$(BONUSES_CURVES)
 	if [ ! -d "$(UPX_DIR)" ]; then \
