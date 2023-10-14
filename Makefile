@@ -22,12 +22,12 @@ PATCHES = patches.json
 BONUSES = bonuses.json
 CURVES = item-curves.json
 BONUSES_CURVES = bonuses_curves.json
-QT_DESIGNER = venv/Lib/site-packages/qt5_applications/Qt/bin/designer.exe
-QT_LINGUIST = "D:\Qt Linguist\bin\linguist.exe"
-QT_LRELEASE = "D:\Qt Linguist\bin\lrelease.exe"
+QT_DESIGNER = qt5-tools designer
+QT_LINGUIST = qt5-tools linguist
+QT_LRELEASE = qt5-tools lrelease
 # remove -it when running in CI
 # https://stackoverflow.com/questions/43099116/error-the-input-device-is-not-a-tty
-QT_LRELEASE_DOCKER = MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" docker run --rm -v $(shell pwd):/app -w /app rabits/qt:5.15-desktop lrelease
+# QT_LRELEASE_DOCKER = MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" docker run --rm -v $(shell pwd):/app -w /app rabits/qt:5.15-desktop lrelease
 UI_PATH = ah/ui
 UI_PY_FILES = $(wildcard $(UI_PATH)/*.py)
 UI_LOCALES = en_US zh_CN zh_TW ja_JP ko_KR
@@ -126,7 +126,7 @@ ui-lrelease: $(TARGETS_QM)
 .PHONY: data-locale
 data-locale: $(TARGETS_QM)
 $(TARGETS_QM): $(UI_TS_FILES)
-	$(QT_LRELEASE_DOCKER) $(UI_TS_FILES) || $(QT_LRELEASE) $(UI_TS_FILES)
+	$(QT_LRELEASE) $(UI_TS_FILES)
 
 .PHONY: test
 test:
