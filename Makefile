@@ -59,7 +59,7 @@ dist/ui.tar.gz: dist/run_ui.exe $(TARGETS_PATCH) $(TARGETS_QM) $(PATH_DATA)/$(PA
 dist/run_ui.exe: $(PATH_DATA_AH)/$(BONUSES_CURVES)
 	if [ ! -d "$(UPX_DIR)" ]; then \
 		mkdir -p $(PATH_BUILD) && \
-		curl -L -x socks5://localhost:7890 -o $(PATH_BUILD)/upx.zip $(UPX_URL) && \
+		curl -L -o $(PATH_BUILD)/upx.zip $(UPX_URL) && \
 		7z x $(PATH_BUILD)/upx.zip -o$(PATH_BUILD) -aoa && \
 		pyinstaller \
 			--onefile run_ui.py \
