@@ -9,6 +9,8 @@ show_missing = true
 
 [tool.semantic_release]
 version_variables = ["ah/__init__.py:__version__"]
+# changes to these files are commited to the repo
+# but also uploaded as assets to the release :/
 assets = [
     "ah/data/bonuses_curves.json",
 ]
