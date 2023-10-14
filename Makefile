@@ -25,7 +25,7 @@ BONUSES_CURVES = bonuses_curves.json
 QT_DESIGNER = venv/Lib/site-packages/qt5_applications/Qt/bin/designer.exe
 QT_LINGUIST = "D:\Qt Linguist\bin\linguist.exe"
 QT_LRELEASE = "D:\Qt Linguist\bin\lrelease.exe"
-QT_LRELEASE_DOCKER = docker run -it --rm -v ./locales:/app -w /app rabits/qt:5.15-desktop lrelease
+QT_LRELEASE_DOCKER = MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" docker run -it --rm -v $(shell pwd):/app -w /app rabits/qt:5.15-desktop lrelease
 UI_PATH = ah/ui
 UI_PY_FILES = $(wildcard $(UI_PATH)/*.py)
 UI_LOCALES = en_US zh_CN zh_TW ja_JP ko_KR
