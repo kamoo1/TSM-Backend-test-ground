@@ -54,3 +54,5 @@ jobs:
       # there's a step in the build process that involves downloading a docker image
       run: |
         python -m semantic_release version
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
