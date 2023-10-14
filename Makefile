@@ -31,6 +31,7 @@ UI_PY_FILES = $(wildcard $(UI_PATH)/*.py)
 UI_LOCALES = en_US zh_CN zh_TW ja_JP ko_KR
 UI_TS_FILES = $(foreach locale,$(UI_LOCALES),locales/$(locale).ts)
 UPX_DIR = D:/upx-4.0.2-win64
+UPX_URL = https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip
 
 TARGETS_QM = $(foreach locale,$(UI_LOCALES),locales/$(locale).qm)
 TARGETS_PATCH = $(PATH_DATA)/$(LRI_DIFF) $(PATH_DATA)/$(LRI_SHA) $(PATH_DATA)/$(AH_DIFF) $(PATH_DATA)/$(AH_SHA)
@@ -56,15 +57,26 @@ dist/ui.tar.gz: dist/run_ui.exe $(TARGETS_PATCH) $(TARGETS_QM) $(PATH_DATA)/$(PA
 	tar -czf dist/ui.tar.gz $(TARGETS_PATCH) $(PATH_DATA)/$(PATCHES) $(TARGETS_QM) -C dist run_ui.exe
 
 dist/run_ui.exe: $(PATH_DATA_AH)/$(BONUSES_CURVES)
-	pyinstaller \
-		--onefile run_ui.py \
-		--add-data "$(PATH_DATA_AH)/*.json:$(PATH_DATA_AH)" \
-		--upx-dir "$(UPX_DIR)" \
-		--windowed
+	if [ ! -d "$(UPX_DIR)" ]; then \
+		mkdir -p $(PATH_BUILD) && \
+		curl -L -x socks5://localhost:7890 -o $(PATH_BUILD)/upx.zip $(UPX_URL) && \
+		7z x $(PATH_BUILD)/upx.zip -o$(PATH_BUILD) -aoa && \
+		pyinstaller \
+			--onefile run_ui.py \
+			--add-data "$(PATH_DATA_AH)/*.json:$(PATH_DATA_AH)" \
+			--upx-dir "$(PATH_BUILD)/upx-4.0.2-win64" \
+			--windowed ; \
+	else \
+		pyinstaller \
+			--onefile run_ui.py \
+			--add-data "$(PATH_DATA_AH)/*.json:$(PATH_DATA_AH)" \
+			--upx-dir "${UPX_DIR}" \
+			--windowed ; \
+	fi
 
 .PHONY: data-patch
 data-patch: $(TARGETS_PATCH)
-$(PATH_DATA)/$(LRI_DIFF): $(PATH_LRI_DST)
+$(PATH_DATA)/$(LRI_DIFF): # $(PATH_LRI_DST), CI don't really have this file
 	python -m ah.patcher diff --out $(PATH_DATA)/$(LRI_DIFF) "$(PATH_LRI_SRC)" "$(PATH_LRI_DST)"
 $(PATH_DATA)/$(LRI_SHA):
 	python -m ah.patcher hash "$(PATH_LRI_SRC)" > "$(PATH_DATA)/$(LRI_SHA)"
